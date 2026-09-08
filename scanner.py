@@ -9,6 +9,7 @@ def get_demo_devices():
             "mac_address": "AA:BB:CC:DD:EE:01",
             "hostname": "iphone",
             "device_type": "Phone",
+            "is_known": True,
             "status": "Online",
             "last_seen": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         },
@@ -17,6 +18,7 @@ def get_demo_devices():
             "mac_address": "AA:BB:CC:DD:EE:02",
             "hostname": "chromebook",
             "device_type": "Computer",
+            "is_known": True,
             "status": "Online",
             "last_seen": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         },
@@ -25,9 +27,19 @@ def get_demo_devices():
             "mac_address": "AA:BB:CC:DD:EE:03",
             "hostname": "xbox",
             "device_type": "Game Console",
+            	"is_known": True,
             "status": "Online",
             "last_seen": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         },
+{
+    "ip_address": "192.168.1.45",
+    "mac_address": "DE:AD:BE:EF:00:01",
+    "hostname": "unknown-device",
+    "device_type": "Unknown",
+    "is_known": False,
+    "status": "Online",
+    "last_seen": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+},
     ]
 
 if __name__ == "__main__":
