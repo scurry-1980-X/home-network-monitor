@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Network Monitor</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .summary {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f0f2f5;
+        }
+
+        .online {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Home Network Monitor</h1>
+
+    <div class="summary">
+        Devices detected: {{ devices|length }}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Device</th>
+                <th>Type</th>
+                <th>IP Address</th>
+                <th>MAC Address</th>
+                <th>Status</th>
+                <th>Last Seen</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for device in devices %}
+            <tr>
+                <td>{{ device.hostname }}</td>
+                <td>{{ device.device_type }}</td>
+                <td>{{ device.ip_address }}</td>
+                <td>{{ device.mac_address }}</td>
+                <td class="online">{{ device.status }}</td>
+                <td>{{ device.last_seen }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+</body>
+</html>
