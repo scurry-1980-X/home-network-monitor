@@ -75,7 +75,9 @@
     <div class="summary">
         Devices detected: {{ devices|length }}
     </div>
-
+    <form method="post" action="/refresh">
+    <button type="submit">Refresh Scan</button>
+</form>
     <table>
 
         <thead>
