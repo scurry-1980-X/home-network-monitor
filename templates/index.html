@@ -3,33 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Home Network Monitor</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
             margin: 0;
-            padding: 30px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #07111f;
+            color: #e8eef7;
         }
 
         .container {
-            max-width: 1100px;
-            margin: auto;
-            background: white;
-            padding: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 28px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .title-group h1 {
+            margin: 0;
+            font-size: 36px;
+            letter-spacing: -1px;
+        }
+
+        .title-group p {
+            margin: 7px 0 0;
+            color: #8fa3bc;
+            font-size: 16px;
+        }
+
+        .refresh-button {
+            border: 0;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 13px 20px;
+            background: #1687ff;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(22, 135, 255, 0.25);
         }
 
-        h1 {
-            margin-top: 0;
+        .refresh-button:hover {
+            background: #0877e8;
         }
 
-        .summary {
-            margin-bottom: 20px;
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: #101d2e;
+            border: 1px solid #1d3047;
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .stat-card .label {
+            color: #8fa3bc;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .number {
+            font-size: 34px;
+            font-weight: 800;
+        }
+
+        .stat-card.total {
+            border-left: 4px solid #1687ff;
+        }
+
+        .stat-card.known {
+            border-left: 4px solid #29c879;
+        }
+
+        .stat-card.unknown {
+            border-left: 4px solid #ff6262;
+        }
+
+        .panel {
+            background: #0e1928;
+            border: 1px solid #1d3047;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.20);
+        }
+
+        .panel-title {
+            padding: 20px 22px;
+            border-bottom: 1px solid #1d3047;
             font-size: 18px;
+            font-weight: 700;
         }
 
         table {
@@ -37,96 +116,200 @@
             border-collapse: collapse;
         }
 
-        th,
-        td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
         th {
-            background-color: #f0f2f5;
+            background: #132238;
+            color: #aab9ca;
+            text-align: left;
+            padding: 15px 18px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
-        .online {
-            font-weight: bold;
+        td {
+            padding: 17px 18px;
+            border-top: 1px solid #1b2b3e;
+            font-size: 15px;
         }
 
-        .known {
-            font-weight: bold;
+        tbody tr:hover {
+            background: #122238;
         }
 
-        .unknown {
-            font-weight: bold;
+        .device-name {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .muted {
+            color: #91a4ba;
+        }
+
+        .status-online {
+            color: #50d890;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .badge-known {
+            color: #75e6aa;
+            background: rgba(41, 200, 121, 0.14);
+            border: 1px solid rgba(41, 200, 121, 0.35);
+        }
+
+        .badge-unknown {
+            color: #ff8c8c;
+            background: rgba(255, 98, 98, 0.13);
+            border: 1px solid rgba(255, 98, 98, 0.35);
         }
 
         .unknown-row {
-            background-color: #fff4f4;
+            background: rgba(255, 98, 98, 0.035);
+        }
+
+        .footer {
+            text-align: center;
+            color: #647b94;
+            font-size: 13px;
+            padding: 24px 0 5px;
+        }
+
+        @media (max-width: 900px) {
+            .header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 950px;
+            }
         }
     </style>
 </head>
 
 <body>
 
+{% set known_count = devices | selectattr("is_known") | list | length %}
+{% set unknown_count = devices | rejectattr("is_known") | list | length %}
+
 <div class="container">
 
-    <h1>Home Network Monitor</h1>
+    <div class="header">
+        <div class="title-group">
+            <h1>Home Network Monitor</h1>
+            <p>Live Network Scanning &amp; Device Monitoring</p>
+        </div>
 
-    <div class="summary">
-        Devices detected: {{ devices|length }}
+        <form method="post" action="/refresh">
+            <button class="refresh-button" type="submit">
+                ↻ Refresh Scan
+            </button>
+        </form>
     </div>
-    <form method="post" action="/refresh">
-    <button type="submit">Refresh Scan</button>
-</form>
-    <table>
 
-        <thead>
-            <tr>
-                <th>Device</th>
-                <th>Type</th>
-                <th>IP Address</th>
-                <th>MAC Address</th>
-                <th>Status</th>
-                <th>Trust</th>
-                <th>Last Seen</th>
-            </tr>
-        </thead>
+    <div class="stats">
 
-        <tbody>
+        <div class="stat-card total">
+            <div class="label">TOTAL DEVICES</div>
+            <div class="number">{{ devices | length }}</div>
+        </div>
 
-        {% for device in devices %}
+        <div class="stat-card known">
+            <div class="label">KNOWN DEVICES</div>
+            <div class="number">{{ known_count }}</div>
+        </div>
 
-            <tr class="{% if not device.is_known %}unknown-row{% endif %}">
+        <div class="stat-card unknown">
+            <div class="label">UNKNOWN DEVICES</div>
+            <div class="number">{{ unknown_count }}</div>
+        </div>
 
-                <td>{{ device.hostname }}</td>
+    </div>
 
-                <td>{{ device.device_type }}</td>
+    <div class="panel">
 
-                <td>{{ device.ip_address }}</td>
+        <div class="panel-title">
+            Connected Devices
+        </div>
 
-                <td>{{ device.mac_address }}</td>
+        <table>
+            <thead>
+                <tr>
+                    <th>Device</th>
+                    <th>Type</th>
+                    <th>IP Address</th>
+                    <th>MAC Address</th>
+                    <th>Status</th>
+                    <th>Trust</th>
+                    <th>Last Seen</th>
+                </tr>
+            </thead>
 
-                <td class="online">
-                    {{ device.status }}
-                </td>
+            <tbody>
 
-                <td>
-                    {% if device.is_known %}
-                        <span class="known">Known</span>
-                    {% else %}
-                        <span class="unknown">⚠ Unknown</span>
-                    {% endif %}
-                </td>
+            {% for device in devices %}
 
-                <td>{{ device.last_seen }}</td>
+                <tr class="{% if not device.is_known %}unknown-row{% endif %}">
 
-            </tr>
+                    <td class="device-name">
+                        {{ device.hostname }}
+                    </td>
 
-        {% endfor %}
+                    <td class="muted">
+                        {{ device.device_type }}
+                    </td>
 
-        </tbody>
+                    <td>
+                        {{ device.ip_address }}
+                    </td>
 
-    </table>
+                    <td class="muted">
+                        {{ device.mac_address }}
+                    </td>
+
+                    <td class="status-online">
+                        {{ device.status }}
+                    </td>
+
+                    <td>
+                        {% if device.is_known %}
+                            <span class="badge badge-known">✓ Known</span>
+                        {% else %}
+                            <span class="badge badge-unknown">? Unknown</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="muted">
+                        {{ device.last_seen }}
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="footer">
+        Python • Flask • Nmap &nbsp; | &nbsp; Runs locally on your network
+    </div>
 
 </div>
 
