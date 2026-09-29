@@ -6,3 +6,4 @@ network-scan.xml
 network-scan.tmp.xml
 scanner_backup.py
 local_config.json
+device_history.db

@@ -3,7 +3,8 @@ import os
 import subprocess
 import threading
 import xml.etree.ElementTree as ET
-from datetime import datetime
+
+from device_history import get_device_history, update_device_history
 
 
 XML_FILE = "/Users/owner/network-scan.xml"
@@ -22,6 +23,7 @@ def load_local_config():
 
 
 LOCAL_CONFIG = load_local_config()
+
 LOCAL_HOSTNAME = os.getenv(
     "LOCAL_HOSTNAME",
     LOCAL_CONFIG.get("local_hostname", "")
@@ -60,7 +62,6 @@ def load_known_devices():
 def get_devices_from_xml(xml_file):
     tree = ET.parse(xml_file)
     root = tree.getroot()
-
     known_devices = load_known_devices()
     devices = []
 
@@ -94,10 +95,14 @@ def get_devices_from_xml(xml_file):
             display_name = known_info.get("name", hostname)
             device_type = known_info.get("type", "Unknown")
             is_known = True
-        elif LOCAL_HOSTNAME and hostname.lower().startswith(LOCAL_HOSTNAME.lower()):
+
+        elif LOCAL_HOSTNAME and hostname.lower().startswith(
+            LOCAL_HOSTNAME.lower()
+        ):
             display_name = "Home Network Monitor iMac"
             device_type = "Computer"
             is_known = True
+
         else:
             display_name = hostname
             device_type = "Unknown"
@@ -111,16 +116,33 @@ def get_devices_from_xml(xml_file):
                 "device_type": device_type,
                 "is_known": is_known,
                 "status": "Online",
-                "last_seen": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
+
+    for device in devices:
+        history = get_device_history(device["mac_address"])
+
+        if history:
+            device["first_seen"] = history["first_seen"]
+            device["last_seen"] = history["last_seen"]
+            device["scan_count"] = history["scan_count"]
+        else:
+            device["first_seen"] = "Not recorded"
+            device["last_seen"] = "Not recorded"
+            device["scan_count"] = 0
 
     return devices
 
 
-if __name__ == "__main__":
+def scan_and_update_history():
     run_nmap_scan()
     devices = get_devices_from_xml(XML_FILE)
+    update_device_history(devices)
+    return get_devices_from_xml(XML_FILE)
+
+
+if __name__ == "__main__":
+    devices = scan_and_update_history()
 
     print("Home Network Monitor")
     print("-" * 100)

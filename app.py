@@ -1,5 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request
-from scanner import get_devices_from_xml, run_nmap_scan
+
+from scanner import get_devices_from_xml, scan_and_update_history
+
 
 app = Flask(__name__)
 
@@ -29,8 +31,10 @@ def apply_privacy_mode(devices):
 
         # Mask the final octet of the IP address.
         ip = private_device.get("ip_address", "Unknown")
+
         if ip != "Unknown":
             parts = ip.split(".")
+
             if len(parts) == 4:
                 private_device["ip_address"] = (
                     f"{parts[0]}.{parts[1]}.{parts[2]}.XXX"
@@ -38,8 +42,10 @@ def apply_privacy_mode(devices):
 
         # Mask the final three groups of the MAC address.
         mac = private_device.get("mac_address", "Unknown")
+
         if mac != "Unknown":
             parts = mac.split(":")
+
             if len(parts) == 6:
                 private_device["mac_address"] = ":".join(
                     parts[:3] + ["XX", "XX", "XX"]
@@ -68,7 +74,13 @@ def home():
 
 @app.route("/refresh", methods=["POST"])
 def refresh():
-    run_nmap_scan()
+    scan_and_update_history()
+
+    privacy_mode = request.form.get("privacy") == "1"
+
+    if privacy_mode:
+        return redirect(url_for("home", privacy=1))
+
     return redirect(url_for("home"))
 
 
