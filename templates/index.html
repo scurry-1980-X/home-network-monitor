@@ -97,7 +97,7 @@
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 18px;
             margin-bottom: 28px;
         }
@@ -124,12 +124,60 @@
             border-left: 4px solid #1687ff;
         }
 
-        .stat-card.known {
+        .stat-card.online {
             border-left: 4px solid #29c879;
+        }
+
+        .stat-card.offline {
+            border-left: 4px solid #ffb347;
         }
 
         .stat-card.unknown {
             border-left: 4px solid #ff6262;
+        }
+
+        .monitoring-status {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+            padding: 16px 20px;
+            background: #101d2e;
+            border: 1px solid #1d3047;
+            border-radius: 12px;
+            color: #aab9ca;
+            font-size: 14px;
+        }
+
+        .monitoring-status strong {
+            color: #ffffff;
+        }
+
+        .monitoring-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #50d890;
+            font-weight: 700;
+        }
+
+        .monitoring-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #50d890;
+            box-shadow: 0 0 10px rgba(80, 216, 144, 0.55);
+        }
+
+        .alert-active {
+            color: #50d890;
+            font-weight: 700;
+        }
+
+        .alert-inactive {
+            color: #ffb347;
+            font-weight: 700;
         }
 
         .panel {
@@ -189,6 +237,11 @@
             font-weight: 700;
         }
 
+        .status-offline {
+            color: #ff6b6b;
+            font-weight: 700;
+        }
+
         .badge {
             display: inline-block;
             padding: 6px 11px;
@@ -211,6 +264,14 @@
 
         .unknown-row {
             background: rgba(255, 98, 98, 0.035);
+        }
+
+        .offline-row {
+            background: rgba(255, 107, 107, 0.055);
+        }
+
+        .offline-row:hover {
+            background: rgba(255, 107, 107, 0.09);
         }
 
         .privacy-banner {
@@ -256,6 +317,8 @@
 
 {% set known_count = devices | selectattr("is_known") | list | length %}
 {% set unknown_count = devices | rejectattr("is_known") | list | length %}
+{% set online_count = devices | selectattr("status", "equalto", "Online") | list | length %}
+{% set offline_count = devices | selectattr("status", "equalto", "Offline") | list | length %}
 
 <div class="container">
 
@@ -313,9 +376,14 @@
             <div class="number">{{ devices | length }}</div>
         </div>
 
-        <div class="stat-card known">
-            <div class="label">KNOWN DEVICES</div>
-            <div class="number">{{ known_count }}</div>
+        <div class="stat-card online">
+            <div class="label">ONLINE NOW</div>
+            <div class="number">{{ online_count }}</div>
+        </div>
+
+        <div class="stat-card offline">
+            <div class="label">OFFLINE</div>
+            <div class="number">{{ offline_count }}</div>
         </div>
 
         <div class="stat-card unknown">
@@ -325,10 +393,48 @@
 
     </div>
 
+    <div class="monitoring-status">
+
+        <span class="monitoring-indicator">
+            <span class="monitoring-dot"></span>
+            Monitoring Active
+        </span>
+
+        <span>
+            Last Scan:
+            <strong>{{ monitoring_status.last_scan }}</strong>
+        </span>
+
+        <span>
+            Scan Interval:
+            <strong>{{ monitoring_status.scan_interval_minutes }} min</strong>
+        </span>
+
+        <span>
+            Monitored:
+            <strong>{{ monitoring_status.monitored_device }}</strong>
+        </span>
+
+        <span>
+            Alert Threshold:
+            <strong>{{ monitoring_status.offline_threshold_minutes }} min offline</strong>
+        </span>
+
+        <span>
+            Pushover:
+            {% if monitoring_status.pushover_configured %}
+                <span class="alert-active">✓ Configured</span>
+            {% else %}
+                <span class="alert-inactive">Not Configured</span>
+            {% endif %}
+        </span>
+
+    </div>
+
     <div class="panel">
 
         <div class="panel-title">
-            Connected Devices
+            Network Devices
         </div>
 
         <table>
@@ -343,6 +449,7 @@
                     <th>Trust</th>
                     <th>First Seen</th>
                     <th>Last Seen</th>
+                    <th>Offline For</th>
                     <th>Scans</th>
                 </tr>
             </thead>
@@ -351,7 +458,7 @@
 
             {% for device in devices %}
 
-                <tr class="{% if not device.is_known %}unknown-row{% endif %}">
+                <tr class="{% if device.status == 'Offline' %}offline-row{% elif not device.is_known %}unknown-row{% endif %}">
 
                     <td class="device-name">
                         {{ device.hostname }}
@@ -369,7 +476,7 @@
                         {{ device.mac_address }}
                     </td>
 
-                    <td class="status-online">
+                    <td class="{% if device.status == 'Online' %}status-online{% else %}status-offline{% endif %}">
                         {{ device.status }}
                     </td>
 
@@ -397,6 +504,10 @@
 
                     <td class="muted">
                         {{ device.last_seen }}
+                    </td>
+
+                    <td class="muted">
+                        {{ device.offline_duration }}
                     </td>
 
                     <td class="muted">

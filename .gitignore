@@ -7,3 +7,12 @@ network-scan.tmp.xml
 scanner_backup.py
 local_config.json
 device_history.db
+pushover_config.json
+scanner_before_*.py
+device_history_*.db
+device_history_before_*.py
+app_before_*.py
+templates/index_before_*.html
+alert_config.json
+last_scan.json
+monitor_before_*.py
