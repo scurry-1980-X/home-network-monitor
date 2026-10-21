@@ -18,3 +18,4 @@ last_scan.json
 monitor_before_*.py
 monitor.log
 monitor-error.log
+bandit-report.txt

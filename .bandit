@@ -1,0 +1,11 @@
+exclude_dirs:
+  - .venv
+  - __pycache__
+  - tests
+  - .git
+  - app_before_dashboard_monitoring_status.py
+  - app_before_offline_detection.py
+  - scanner_backup.py
+  - scanner_before_last_scan.py
+  - scanner_before_offline_detection.py
+  - scanner_before_offline_duration.py

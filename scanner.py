@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 import threading
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from datetime import datetime
 
 LAST_SCAN_FILE = "last_scan.json"
@@ -51,7 +51,7 @@ def run_nmap_scan():
     with SCAN_LOCK:
         subprocess.run(
             [
-                "sudo",
+                "/usr/bin/sudo",
                 "-n",
                 "/usr/local/bin/nmap",
                 "-sn",
